@@ -1,4 +1,4 @@
-# esp8266_RFControl
+# esp8266_RFControl WORKS with WAREMA EWFS 433 MHz!
 
 Use an esp8266 and some cheap 433mhz sender/receiver to send any (ask non-rolling) rf command.
 
