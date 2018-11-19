@@ -12,7 +12,6 @@
 #include <RFControl.h>
 #include <DHT.h>
 #include <PubSubClient.h>
-#include <Ticker.h>
 
 const char* config_ssid = "shutter_control";
 const char* config_password = "esp8266";
@@ -44,7 +43,6 @@ WiFiClient espClient;
 
 PubSubClient client(espClient); 
 DHT dht22(D3, DHT22); //DHT22 wired to D3
-Ticker blinker;
 unsigned long lastUpdateTime = 0;
 
 std::unique_ptr<ESP8266WebServer> server;
