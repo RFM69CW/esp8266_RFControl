@@ -10,9 +10,12 @@
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
 #include <RFControl.h>
+#include <DHT.h>
+#include <PubSubClient.h>
+#include <Ticker.h>
 
-const char* config_ssid = "RFControl";
-const char* config_password = "lortnoCFR";
+const char* config_ssid = "shutter_control";
+const char* config_password = "esp8266";
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -21,12 +24,28 @@ const int RESET_PIN = 14; //D5 on nodeMCU
 const int RECEIVE_PIN = 2; //D4 on nodeMCU
 const int SEND_PIN = 16; //D0 on nodeMCU
 
+
+//MQTT DHT22
+#define SENSORLOCATION "living"
+#define REPORT_DELAY_SECS 30
+#define MQTT_HOST "192.168.178.179"
+#define MQTT_PORT 1883
+#define MQTT_CLIENT "ESP8266_dht22_" SENSORLOCATION
+#define MQTT_TOPIC_H1 SENSORLOCATION "/hum" 
+#define MQTT_TOPIC_T1 SENSORLOCATION "/temp"
+#define MQTT_TOPIC_ACTIVE SENSORLOCATION "/sensor/active"
+
 //array for last received code links
 const int MAX_CODE_URLS = 16;
 String code_urls[MAX_CODE_URLS];
 int current_code_url_index = 0;
 
 WiFiClient espClient;
+
+PubSubClient client(espClient); 
+DHT dht22(D3, DHT22); //DHT22 wired to D3
+Ticker blinker;
+unsigned long lastUpdateTime = 0;
 
 std::unique_ptr<ESP8266WebServer> server;
 
@@ -112,14 +131,17 @@ void setup() {
   //make sure softap is off
   WiFi.softAPdisconnect(true);
 
+  client.setServer(MQTT_HOST, MQTT_PORT); 
 
   Serial.println("local ip:");
   Serial.println(WiFi.localIP());
-  
+  Serial.println(F("Start DHT22"));
+  dht22.begin();
 }
 
 void loop() {
   server->handleClient();
+  tempHumPublish();
 }
 
 
